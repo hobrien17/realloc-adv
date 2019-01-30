@@ -1,9 +1,0 @@
-3/6,Alice,Bob,Charlie,tutors,hours,clash
-T01,A,A,U,1,1,T06
-T02,A,U,A,1,1,
-T03,A,A,U,1,1,
-T04,A,A,U,1,1,
-T05,U,A,A,1,1,
-T06,U,U,A,1,1,T01
-minhours,2,2,2,,,
-maxhours,4,4,4,,,
