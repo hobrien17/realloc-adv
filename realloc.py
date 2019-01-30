@@ -33,6 +33,8 @@ class Allocator:
 
 	def _write(self):
 		self._file = open("model", "w")
+		random.shuffle(self._decls)
+		random.shuffle(self._assertions)
 		self._file.write("\n".join(self._decls + ["(declare-const d-{} Int)".format(i) for i in range(len(self._hours))]) + "\n")
 		self._file.write("\n".join(self._assertions + ["(assert (= d-{} {}))".format(i, val) for i, val in enumerate(self._hours)]) + "\n")
 
@@ -211,8 +213,10 @@ def read_csv(filename):
 
 def write_csv(filename, alloc):
 	contents = ""
+	contents += "," + ",".join(alloc.iter_tutors()) + "\n"
+	classes = alloc.iter_classes()
 	for row in alloc.get_alloc():
-		contents += ",".join("Y" if i else "N" for i in row ) + "\n"
+		contents += next(classes) + "," + ",".join("Y" if i else "N" for i in row ) + "\n"
 	with open(filename, "w") as f:
 		f.write(contents)
 
@@ -223,7 +227,7 @@ def multi_write(folder, alloc, times=1):
 	os.mkdir(folder)
 
 	for i in range(times):
-		write_csv("{}/model{}.csv".format(folder, i))
+		write_csv(os.path.join(folder, "model{}.csv".format(i)))
 
 
 ############################
