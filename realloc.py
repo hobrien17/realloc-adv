@@ -223,11 +223,11 @@ def write_csv(filename, alloc):
 
 def multi_write(folder, alloc, times=1):
 	if os.path.exists(folder):
-		shutil.rmdir(folder)
+		shutil.rmtree(folder)
 	os.mkdir(folder)
 
 	for i in range(times):
-		write_csv(os.path.join(folder, "model{}.csv".format(i)))
+		write_csv(os.path.join(folder, "model{}.csv".format(i)), alloc)
 
 
 ############################
@@ -246,7 +246,7 @@ def parse_args(**kwargs):
 	input_csv = kwargs.get("csv")
 	input_cmds = kwargs.get("cmds")
 	output_csv = kwargs.get("out")
-	multi = kwargs.get("multi", 0)
+	multi = int(kwargs.get("multi", 0))
 
 	if input_csv is None:
 		return help("Missing input filename")
@@ -294,38 +294,6 @@ def main(args):
 if __name__ == "__main__":
 	main(sys.argv)
 
-
-"""
-EXAMPLE COMMANDS:
-
-Format:
-	(C (run on classes) | T (run on tutors)) (regex pattern to match) => (method to execute) {params}
-
-Set the number of tutors on each class to 1:
-	C .* => set_exact_tutor_limit 1
-
-Set the number of tutors on each prac to be between 2 and 4 (inclusive):
-	C P.* => set_lower_tutor_limit 2
-	C P.* => set_upper_tutor_limit 4
-
-Set the duration of each practical to be 3 hours (if no duration is set, all classes are 1 hour long):
-	C P.* => set_duration 3
-
-Set a clash between T01 and T02:
-	C T01 => set_clash T02
-
-Set the minimum number of hours per week for all tutors to 3:
-	T .* => set_lower_class_limit 3
-
-Set the maximum number of hours per week for tutor BOB to 10:
-	T BOB => set_upper_class_limit 10
-
-Set the minimum number of practical hours per week for all tutors to 2:
-	T .* => set_lower_type_limit P.* 2
-
-Set the maximum number of tutorial hours per week for tutor BOB to 3:
-	T BOB => set_upper_type_limit T.* 3
-"""
 
 ############################
 ####### TESTING CODE #######
