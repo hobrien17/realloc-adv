@@ -62,7 +62,9 @@ The `C` option is used to run the command on classes, while the `T` option is us
 
 Set the number of tutors on each class to 1:
 
-`C .* => set_exact_tutor_limit 1`
+```
+C .* => set_exact_tutor_limit 1
+```
 
 Set the number of tutors on each prac to be between 2 and 4 (inclusive):
 
@@ -73,24 +75,38 @@ C P.* => set_upper_tutor_limit 4
 
 Set the duration of each tutoral to be 2 hours (if no duration is set, all classes are 1 hour long):
 
-`C T.* => set_duration 2`
+```
+C T.* => set_duration 2
+```
 
 Set a clash between T01 and T02:
 
-`C T01 => set_clash T02`
+```
+C T01 => set_clash T02
+```
 
 Set the minimum number of hours per week for all tutors to 3:
 
-`T .* => set_lower_class_limit 3`
+```
+T .* => set_lower_class_limit 3
+```
 
 Set the maximum number of hours per week for tutor Bob to 10:
 
-`T Bob => set_upper_class_limit 10`
+```
+T Bob => set_upper_class_limit 10
+```
 
 Set the minimum number of practical hours per week for all tutors to 2:
 
-`T .* => set_lower_type_limit P.* 2`
+```
+T .* => set_lower_type_limit P.* 2
+```
 
 Set the maximum number of tutorial hours per week for tutor Bob to 3:
 
-`T Bob => set_upper_type_limit T.* 3`
+```
+T Bob => set_upper_type_limit T.* 3
+```
+
+(aside: for more accurate regex matching of three-character class codes, a regex pattern such as `^P\d\d$` (for matching all practicals) should be used)
