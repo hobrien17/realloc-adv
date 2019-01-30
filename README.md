@@ -109,4 +109,4 @@ Set the maximum number of tutorial hours per week for tutor Bob to 3:
 T Bob => set_upper_type_limit T.* 3
 ```
 
-(aside: for more accurate regex matching of three-character class codes, a regex pattern such as `^P\d\d$` (for matching all practicals) should be used)
+(aside: for more accurate regex matching of three-character class codes, a regex pattern such as `^P\d\d$` (for matching all practicals in this case) should be used)
