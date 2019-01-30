@@ -10,7 +10,7 @@ Where
 * `input` is a CSV file of tutor availabilities
 * `output` is the CSV file or directory where the outputted allocation(s) will be stored
 * `commands` is a txt file of optional commands
-* `count` is the number of outputs to generate (if `count` > 0, `output` should be a directory)
+* `count` is the number of outputs to generate (if `count` > 1, `output` should be a directory)
 
 ## Requirements
 
