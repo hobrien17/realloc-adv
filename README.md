@@ -1,6 +1,6 @@
 # realloc-adv
 
-Advanced version of the realloc backend. Has the capability to process CSV inputs of availability.
+Optimised version of the realloc backend - this version is more efficient and has a wider range of capabilities than the Hungarian algorithm-based version. Has the capability to process CSV inputs of availability.
 
 ## Usage
 
