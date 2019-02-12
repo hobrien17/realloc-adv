@@ -60,6 +60,8 @@ The format for specifying commands is as follows:
 
 The `C` option is used to run the command on classes, while the `T` option is used to run the command on tutors. Example usage for each method is described below:
 
+### Tutor count
+
 Set the number of tutors on each class to 1:
 
 ```
@@ -73,17 +75,23 @@ C P.* => set_lower_tutor_limit 2
 C P.* => set_upper_tutor_limit 4
 ```
 
+### Tutorial length
+
 Set the duration of each tutoral to be 2 hours (if no duration is set, all classes are 1 hour long):
 
 ```
 C T.* => set_duration 2
 ```
 
+### Clashes
+
 Set a clash between T01 and T02:
 
 ```
 C T01 => set_clash T02
 ```
+
+### Min/max hours
 
 Set the minimum number of hours per week for all tutors to 3:
 
@@ -109,7 +117,9 @@ Set the maximum number of tutorial hours per week for tutor Bob to 3:
 T Bob => set_upper_type_limit T.* 3
 ```
 
-Set Alice as a senior tutor and Bob as a junior tutor (the allocator will attempt to match these two tutors to the same session - NOTE: if using this option, make sure there is room for both a junior and senior tutor on each class)
+### Junior/Senior tutor pairing
+
+Set Alice as a senior tutor and Bob as a junior tutor (the allocator will attempt to all junior tutors with a senior tutor - NOTE: if using this option, make sure there is room for both a junior and senior tutor on each class)
 
 ```
 T Alice => set_senior
