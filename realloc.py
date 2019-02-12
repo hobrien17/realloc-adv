@@ -15,8 +15,8 @@ class Allocator:
 		self._classes = classes
 		self._hours = [1 for i in classes]
 		self._prefs = prefs
-
-		assert len(self._classes) == len(self._hours)
+		self._junior = []
+		self._senior = []
 
 		self._decls = []
 		self._assertions = []
@@ -31,12 +31,22 @@ class Allocator:
 		for cls in self._classes:
 			yield cls
 
+	def _junior_senior_matching(self):
+		result = []
+		for junior in self._junior:
+			jid = self._tutors.index(junior)
+			for i in range(len(self._classes)):
+				result.append("(assert (if i-{}-{} (or {}) true))".format(i, jid, " ".join("i-{}-{}".format(i, self._tutors.index(senior)) for senior in self._senior)))
+
+		return result
+
 	def _write(self):
 		self._file = open("model", "w")
 		random.shuffle(self._decls)
 		random.shuffle(self._assertions)
 		self._file.write("\n".join(self._decls + ["(declare-const d-{} Int)".format(i) for i in range(len(self._hours))]) + "\n")
-		self._file.write("\n".join(self._assertions + ["(assert (= d-{} {}))".format(i, val) for i, val in enumerate(self._hours)]) + "\n")
+		self._file.write("\n".join(self._assertions + ["(assert (= d-{} {}))".format(i, val) for i, val in enumerate(self._hours)] + self._junior_senior_matching()) + "\n")
+		print("Model written to file")
 
 	def check_sat(self):
 		self._write()
@@ -91,7 +101,7 @@ class Allocator:
 			return self._tutors.index(tutor)
 		except ValueError:
 			print("Tutor {} cannot be found".format(tutor))
-			raise RuntimError
+			raise RuntimeError
 
 	def set_clash(self, cls, clash):
 		cls_i = self._index_classes(cls)
@@ -101,6 +111,12 @@ class Allocator:
 
 	def set_duration(self, cls, duration):
 		self._hours[self._index_classes(cls)] = duration
+
+	def set_junior(self, tutor):
+		self._junior.append(tutor)
+
+	def set_senior(self, tutor):
+		self._senior.append(tutor)
 
 	def _set_tutor_limit(self, cls, limit, sign):
 		i = self._index_classes(cls)
@@ -150,7 +166,7 @@ class Allocator:
 
 
 def _parse_action(alloc, match, action_params):
-	assert len(action_params) >= 2
+	assert len(action_params) >= 1
 	assert not action_params[0].startswith("_")
 	try:
 		method = getattr(alloc, action_params[0])
@@ -294,27 +310,4 @@ def main(args):
 if __name__ == "__main__":
 	main(sys.argv)
 
-
-############################
-####### TESTING CODE #######
-############################
-
-def test():
-	MATRIX = [
-		[True, True, False],
-		[False, True, True],
-		[True, False, True]
-	]
-
-	TUTORS = ["AL", "BO", "CH"]
-	CLASSES = ["T01", "T02", "T03"]
-	HOURS = [1, 1, 1]
-	CLASHES = [["T03"], [], ["T01"]]
-
-	a = Allocator(TUTORS, CLASSES, HOURS, MATRIX)
-	parse_command("C .* => set_exact_tutor_limit 1", a)
-	parse_command("C T.* => set_duration 1", a)
-	parse_command("C P.* => set_duration 2", a)
-	parse_command("T .* => set_lower_type_limit T.. 1", a)
-	print(a.get_alloc())
 	
