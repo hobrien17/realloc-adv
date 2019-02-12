@@ -91,6 +91,14 @@ Set a clash between T01 and T02:
 C T01 => set_clash T02
 ```
 
+Prevent tutor Bob from doing both T01 and T02:
+
+```
+C T01 => set_single_clash T02 Bob
+```
+
+NOTE: Clashes are commutative, that is, if you set a clash between T01 and T02, you do not have to set a separate clash between T02 and T01
+
 ### Min/max hours
 
 Set the minimum number of hours per week for all tutors to 3:
@@ -119,11 +127,17 @@ T Bob => set_upper_type_limit T.* 3
 
 ### Junior/Senior tutor pairing
 
-Set Alice as a senior tutor and Bob as a junior tutor (the allocator will attempt to all junior tutors with a senior tutor - NOTE: if using this option, make sure there is room for both a junior and senior tutor on each class)
+Set Alice as a senior tutor and Bob as a junior tutor (the allocator will attempt to all junior tutors with a senior tutor)
 
 ```
 T Alice => set_senior
 T Bob => set_junior
+```
+
+NOTE: if using this option, make sure there is room for both a junior and senior tutor on each class - if you do not want junior/senior pairing on a class you can use the no_pair command, as seen below:
+
+```
+C T01 => no_pair
 ```
 
 (aside: for more accurate regex matching of three-character class codes, a regex pattern such as `^P\d\d$` (for matching all practicals in this case) should be used)
