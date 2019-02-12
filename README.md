@@ -127,7 +127,7 @@ T Bob => set_upper_type_limit T.* 3
 
 ### Junior/Senior tutor pairing
 
-Set Alice as a senior tutor and Bob as a junior tutor (the allocator will attempt to all junior tutors with a senior tutor)
+Set Alice as a senior tutor and Bob as a junior tutor (the allocator will attempt to pair all junior tutors with a senior tutor)
 
 ```
 T Alice => set_senior
