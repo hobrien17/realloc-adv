@@ -15,8 +15,10 @@ class Allocator:
 		self._classes = classes
 		self._hours = [1 for i in classes]
 		self._prefs = prefs
+
 		self._junior = []
 		self._senior = []
+		self._nopair = set()
 
 		self._decls = []
 		self._assertions = []
@@ -34,9 +36,10 @@ class Allocator:
 	def _junior_senior_matching(self):
 		result = []
 		for junior in self._junior:
-			jid = self._tutors.index(junior)
+			jid = self._index_tutors(junior)
 			for i in range(len(self._classes)):
-				result.append("(assert (if i-{}-{} (or {}) true))".format(i, jid, " ".join("i-{}-{}".format(i, self._tutors.index(senior)) for senior in self._senior)))
+				if self._classes[i] not in nopair:
+					result.append("(assert (if i-{}-{} (or {}) true))".format(i, jid, " ".join("i-{}-{}".format(i, self.index_tutors(senior)) for senior in self._senior)))
 
 		return result
 
@@ -109,6 +112,15 @@ class Allocator:
 		for j in range(len(self._tutors)):
 			self._assertions.append("(assert (not (and i-{}-{} i-{}-{})))".format(cls_i, j, clash_i, j))
 
+	def set_single_clash(self, cls, clash, tutor):
+		pattern = re.compile(tutor)
+		cls_i = self._index_classes(cls)
+		chash_i = self._index_classes(clash)
+		for j in range(len(self._tutors)):
+			if pattern.match(self._tutors[j]):
+				self._assertions.append("(assert (not (and i-{}-{} i-{}-{})))".format(cls_i, j, clash_i, j))
+		
+
 	def set_duration(self, cls, duration):
 		self._hours[self._index_classes(cls)] = duration
 
@@ -117,6 +129,9 @@ class Allocator:
 
 	def set_senior(self, tutor):
 		self._senior.append(tutor)
+
+	def no_pair(self, cls):
+		self._nopair.add(cls)
 
 	def _set_tutor_limit(self, cls, limit, sign):
 		i = self._index_classes(cls)
