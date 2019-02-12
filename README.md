@@ -109,4 +109,11 @@ Set the maximum number of tutorial hours per week for tutor Bob to 3:
 T Bob => set_upper_type_limit T.* 3
 ```
 
+Set Alice as a senior tutor and Bob as a junior tutor (the allocator will attempt to match these two tutors to the same session - NOTE: if using this option, make sure there is room for both a junior and senior tutor on each class)
+
+```
+T Alice => set_senior
+T Bob => set_junior
+```
+
 (aside: for more accurate regex matching of three-character class codes, a regex pattern such as `^P\d\d$` (for matching all practicals in this case) should be used)
