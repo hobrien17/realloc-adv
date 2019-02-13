@@ -140,4 +140,9 @@ NOTE: if using this option, make sure there is room for both a junior and senior
 C T01 => no_pair
 ```
 
+### Contiguous hours
+
+It is currently not possible to ensure tutors receive as many contiguous classes as possible - this feature is currently in development. For now, if contiguous hours are desired, it is reccomended that you generate multiple allocations (using the `--multi` option) and select the allocation with the most contiguous hours.
+
+
 (aside: for more accurate regex matching of three-character class codes, a regex pattern such as `^P\d\d$` (for matching all practicals in this case) should be used)
