@@ -14,7 +14,7 @@ Where
 
 ## Requirements
 
-Python version 3.4 or higher and the Z3 command line tool are required to run realloc.
+Python version 3.4 or higher and the Z3 command line theorem prover are required to run realloc. You can see more about Z3 here: https://github.com/Z3Prover/z3 (note that installation of Z3 can take a long time, so it is reccomended to run it on a computer with it already installed).
 
 ## Input and Output Format
 
