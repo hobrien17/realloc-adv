@@ -20,6 +20,10 @@ class Allocator:
 		self._senior = []
 		self._nopair = set()
 
+		self._contig_blocks = []
+		self._contig_prefs = self._tutors[:]
+		self._max_contig = {}
+
 		self._decls = []
 		self._assertions = []
 		self._add_prefs()
@@ -32,6 +36,27 @@ class Allocator:
 	def iter_classes(self):
 		for cls in self._classes:
 			yield cls
+
+	def _contig_maximisation(self, value=-1):
+		pairings = []
+		limits = []
+		for i, tutor in enumerate(self._contig_prefs):
+			tid = self._index_tutors(tutor)
+			tutor_limits = []
+			for pre, post in self._contig_blocks:
+				pre_id = self._index_classes(pre)
+				post_id = self._index_classes(post)
+				pairings.append("(if (and i-{}-{} i-{}-{}) 1 0)".format(pre_id, tid, post_id, tid))
+				tutor_limits.append("(if (and i-{}-{} i-{}-{}) (+ d-{} d-{}) 0)".format(pre_id, tid, post_id, tid, pre_id, post_id))
+
+			if tutor in self._max_contig:
+				limits.append("(assert (<= (+ {}) {}))".format(" ".join(tutor_limits), self._max_contig[tutor]))
+		
+		if value < 0:
+			return limits + ["(maximize (+ {}))".format(" ".join(pairings))]
+		else:
+			return limits + ["(assert (>= (+ {}) {}))".format(" ".join(pairings), value)]
+				
 
 	def _junior_senior_matching(self):
 		result = []
@@ -51,19 +76,31 @@ class Allocator:
 		self._file.write("\n".join(self._assertions + ["(assert (= d-{} {}))".format(i, val) for i, val in enumerate(self._hours)] + self._junior_senior_matching()) + "\n")
 		print("Model written to file")
 
-	def check_sat(self):
+	def optimise(self, timeout=10000):
 		self._write()
-		self._file.write("\n(check-sat)\n")
+		self._file.write("\n".join(self._contig_maximisation()))
+		self._file.write("\n(check-sat)\n".format(timeout))
 		self._file.close()
-		try:
-			return subprocess.check_output(["z3", "model", "-t:30000"]).decode("UTF-8").strip() == "sat"
-		except subprocess.CalledProcessError:
-			print("Verification aborted - either an error occured or no satisfiable model could be found")
-			print("Please reduce any constraints and try again")
-			raise RuntimeError
+		proc = subprocess.Popen(["z3", "model", "-t:{}".format(timeout)], stdout=subprocess.PIPE)
+		stdout, stderr = proc.communicate()
+		stdout = stdout.decode("UTF-8").strip()
+		if stdout.strip() == "sat":
+			return -1
+
+		for line in stdout.split("\n"):
+			line = line.strip()
+			if line.endswith("))"):
+				return int(line.rstrip("))").split("(")[-1].split()[0])# TODO: make this line nicer
+
+		return -1
 
 	def get_alloc(self):
-		self._write()
+		if len(self._contig_blocks) > 0:
+			optim_value = self.optimise()
+			self._write()
+			self._file.write("\n".join(self._contig_maximisation(optim_value)))
+		else:
+			self._write()
 		self._file.write("\n(check-sat)\n")
 		for i in range(len(self._classes)):
 			for j in range(len(self._tutors)):
@@ -71,19 +108,20 @@ class Allocator:
 		self._file.close()
 
 		matrix = [[False for i in range(len(self._tutors))] for i in range(len(self._classes))]
-		try:
-			for line in subprocess.check_output(["z3", "model", "-t:30000"]).decode("UTF-8").strip().split("\n")[1:]:
-				line = line.strip("((").strip("))")
-				var, _, val = line.partition(" ")
-				if val == "true":
-					_, s, t = var.split("-")
-					matrix[int(s)][int(t)] = True
-
-			return matrix
-		except subprocess.CalledProcessError:
-			print("Verification aborted - either an error occured or no satisfiable model could be found")
-			print("Please reduce any constraints and try again")
+		proc = subprocess.Popen(["z3", "model", "-t:10000"], stdout=subprocess.PIPE)
+		stdout, stderr = proc.communicate()
+		stdout = stdout.decode("UTF-8").strip()
+		if stdout.startswith("unsat"):
+			print("No satisfiable model could be found")
 			raise RuntimeError
+		for line in stdout.split("\n")[1:]:
+			line = line.strip("((").strip("))")
+			var, _, val = line.partition(" ")
+			if val == "true":
+				_, s, t = var.split("-")
+				matrix[int(s)][int(t)] = True
+
+		return matrix
 
 	def _add_prefs(self):
 		for i, row in enumerate(self._prefs):
@@ -115,7 +153,7 @@ class Allocator:
 	def set_single_clash(self, cls, clash, tutor):
 		pattern = re.compile(tutor)
 		cls_i = self._index_classes(cls)
-		chash_i = self._index_classes(clash)
+		clash_i = self._index_classes(clash)
 		for j in range(len(self._tutors)):
 			if pattern.match(self._tutors[j]):
 				self._assertions.append("(assert (not (and i-{}-{} i-{}-{})))".format(cls_i, j, clash_i, j))
@@ -174,6 +212,22 @@ class Allocator:
 	def set_exact_type_limit(self, tutor, type_, limit):
 		self._set_type_limit(tutor, type_, limit, "=")
 
+	def set_max_contig(self, tutor, value):
+		self._max_contig[tutor] = value
+
+	def pref_contig(self, tutor):
+		self._contig_prefs.append(tutor)
+
+	def pref_non_contig(self, tutor):
+		self._contig_prefs.remove(tutor)
+
+	def contig(self, flag, *args):
+		if not flag:  # flag is used to stop people from calling contig as a T or C command
+			print("Contig should be used as a standalone command")
+			raise RuntimeError
+		for i in range(len(args) - 1):
+			self._contig_blocks.append((args[i], args[i + 1]))
+
 
 ############################
 ##### COMMAND PARSER #######
@@ -200,13 +254,19 @@ def _parse_action(alloc, match, action_params):
 		raise RuntimeError
 
 
+def _parse_contiguous(alloc, action_params):
+	alloc.contig(True, *action_params)
+
+
 def _parse_match(alloc, match_params, action_params):
-	assert len(match_params) == 2
 	generator = None
-	if match_params[0] == "C":
+	if match_params[0].upper() == "C":
 		generator = alloc.iter_classes()
-	elif match_params[0] == "T":
+	elif match_params[0].upper() == "T":
 		generator = alloc.iter_tutors()
+	elif match_params[0].upper() == "CONTIGUOUS":
+		_parse_contiguous(alloc, action_params)
+		return
 	else:
 		print("Invalid commands")
 		raise RuntimeError
@@ -222,6 +282,7 @@ def read_commands(filename, alloc):
 		cmds = [line for line in f]
 
 	for cmd in cmds:
+		cmd = cmd.partition("#")[0]
 		match, _, action = cmd.partition("=>")
 		match_params = match.strip().split()
 		action_params = action.strip().split()
