@@ -142,7 +142,26 @@ C T01 => no_pair
 
 ### Contiguous hours
 
-It is currently not possible to ensure tutors receive as many contiguous classes as possible - this feature is currently in development. For now, if contiguous hours are desired, it is reccomended that you generate multiple allocations (using the `--multi` option) and select the allocation with the most contiguous hours.
+Maximising and restricting contiguous hours is possible. By default contiguous hours will be maximised.
 
+To mark a set of classes as contiguous, a different format of command is required. The example below sets the classes T01, T02, and T03 as contiguous (i.e. T02 immediately follows T01 and T03 immediately follows T02)
+
+```
+contiguous => T01 T02 T03
+```
+
+Not all tutors may desire contiguous hours. You can choose to provide an upper bound on a tutor's contiguous hours or disable contiguous maximisation. To set the maximum number of contiguous hours for Bob to 4:
+
+```
+T Bob => set_max_contig 4
+```
+
+To completely disable contiguous hour maximisation for Bob:
+
+```
+T Bob => pref_non_contig
+```
+
+Contiguous hour maximisation is currently a work-in-progress. Specifying contiguous blocks of classes may significantly reduce the speed of the tool.
 
 (aside: for more accurate regex matching of three-character class codes, a regex pattern such as `^P\d\d$` (for matching all practicals in this case) should be used)
